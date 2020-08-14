@@ -105,21 +105,20 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = ((image_width as f64) / aspect_ratio) as i32; 
-    let samples_per_pixel: i32 = 20;
+    let samples_per_pixel: i32 = 5;
     let max_depth: i32 = 20;
 
 
     // Camera
-/*
-    let lookfrom: Point3 = Point3::new(3.0, 3.0, 2.0);
+
+    let lookfrom: Point3 = Point3::new(3.0, -3.0, 2.0);
     let lookat: Point3 = Point3::new(0.0, 0.0, -1.0);
     let vup: Vec3 = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus: f64 = (lookfrom - lookat).length();
     let aperture: f64 = 2.0;
-    let cam = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus);
-*/
-    //let cam = Camera::new(Point3::new(-2.0, 2.0, 1.0), Point3::new(0.0, 0.0, -1.0), Vec3::new(0.0, 1.0, 0.0), 90.0, aspect_ratio);    
-    let cam = Camera::new(90.0, aspect_ratio);
+
+    let cam = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus);    
+    
 
     // World
 
