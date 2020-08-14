@@ -1,8 +1,8 @@
-use crate::vec3::Vec3;
+use crate::vec3::{Vec3, Point3, Color};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Ray {
-    pub origin: Vec3,
+    pub origin: Point3,
     pub direction: Vec3,
 }
 
@@ -23,14 +23,14 @@ mod test {
 
     #[test]
     fn test_new() {
-        let orig = Vec3::new(1.0, 1.0, 1.0);
+        let orig = Point3::new(1.0, 1.0, 1.0);
         let dir = Vec3::new(3.0, 4.0, 5.0);
         assert_eq!(Ray::new(orig, dir), Ray::new(orig, dir));
     }
 
     #[test]
     fn test_at() {
-        let orig = Vec3::new(3.0, 4.0, 5.0);
+        let orig = Point3::new(3.0, 4.0, 5.0);
         let dir = Vec3::new(1.0, 1.0, 1.0);
         let r = Ray::new(orig, dir);
         assert_eq!(r.at(-2.0), Vec3::new(1.0, 2.0, 3.0));

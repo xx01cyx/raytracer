@@ -1,4 +1,5 @@
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub, SubAssign};
+use crate::utils::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
@@ -6,6 +7,9 @@ pub struct Vec3 {
     pub y: f64,
     pub z: f64,
 }
+
+pub type Color = Vec3;
+pub type Point3 = Vec3;
 
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
@@ -55,6 +59,14 @@ impl Vec3 {
                 z: self.z / len,
             },
         }
+    }
+
+    pub fn random() -> Vec3 {
+        Vec3::new(random_f64(), random_f64(), random_f64())
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Vec3 {
+        Vec3::new(random_f64_range(min, max), random_f64_range(min, max), random_f64_range(min, max))
     }
 }
 
@@ -184,9 +196,50 @@ impl Div<f64> for Vec3 {
     }
 }
 
+pub fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let p = Vec3::random();
+        if p.squared_length() >= 1.0 {
+            continue;
+        }
+        break p;
+    }
+}
 
+pub fn random_unit_vector() -> Vec3 {
+    let a = random_f64_range(0.0, 2.0*PI);
+    let z = random_f64_range(-1.0, 1.0);
+    let r = (1.0 - z * z).sqrt();
+    Vec3::new(r*a.cos(), r*a.sin(), z)
+}
 
+pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+    let in_unit_sphere: Vec3 = random_in_unit_sphere();
+    if in_unit_sphere * normal > 0.0 { in_unit_sphere }
+    else { -in_unit_sphere }
+}
 
+pub fn random_in_unit_disk() -> Vec3 {
+    loop {
+        let p = Vec3::new(random_f64_range(-1.0, 1.0), random_f64_range(-1.0, 1.0), 0.0);
+        if p.squared_length() >= 1.0 {
+            continue;
+        }
+        break p;
+    }
+}
+
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - n * (v * n * 2.0)
+}
+
+pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
+    let cos_theta = -uv * n;
+    let r_out_prep: Vec3 = (uv + n * cos_theta) * etai_over_etat;
+    let r_out_parallel: Vec3 = n * -(1.0 - r_out_prep.squared_length()).abs().sqrt();
+
+    r_out_prep + r_out_parallel
+}
 
 /*
 #[cfg(test)]
