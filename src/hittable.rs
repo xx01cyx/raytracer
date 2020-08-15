@@ -1,6 +1,8 @@
 use crate::vec3::{Vec3, Point3, Color};
 use crate::ray::Ray;
 use crate::{Material, Lambertian, Metal};
+use crate::aabb::{self, AABB};
+use crate::texture::{Texture, SolidColor, CheckerTexture};
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -37,7 +39,7 @@ impl HitRecord {
 
 pub trait Hittable {
     fn hit(&self, r: Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
-    //fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut aabb) -> bool;
+    fn bounding_box(&self, output_box: &mut AABB) -> bool;
 }
 
 
@@ -61,7 +63,7 @@ impl HittableList {
 
 impl Hittable for HittableList {
     fn hit(&self, r: Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
-        let mut temp_rec = HitRecord::new(Arc::new(Lambertian::new(Color::zero())));
+        let mut temp_rec = HitRecord::new(Arc::new(Lambertian::new(Arc::new(SolidColor::new(Color::zero())))));
         let mut hit_anything: bool = false;
         let mut closest_so_far: f64 = t_max;
         
@@ -75,6 +77,25 @@ impl Hittable for HittableList {
 
         return hit_anything;
     }
+
+    fn bounding_box(&self, output_box: &mut AABB) -> bool {
+        if self.objects.len() == 0 {
+            return false;
+        }
+
+        let mut temp_box = AABB::new(Point3::zero(),Point3::zero());
+        let mut first_box = true;
+
+        for object in &self.objects {
+            if !object.bounding_box(&mut temp_box) {
+                return false;
+            }
+            *output_box = if first_box { temp_box.clone() } else { aabb::surrounding_box(&output_box, &temp_box) };
+            first_box = false;
+        }
+
+        return true;
+    } 
 }
 
 

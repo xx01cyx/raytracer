@@ -61,6 +61,15 @@ impl Vec3 {
         }
     }
 
+    pub fn axis(&self, i: i32) -> f64 {
+        match i {
+            0 => self.x,
+            1 => self.y,
+            2 => self.z,
+            _ => panic!("Illegal axis!"),
+        }
+    }
+
     pub fn random() -> Vec3 {
         Vec3::new(random_f64(), random_f64(), random_f64())
     }

@@ -1,21 +1,26 @@
 use crate::vec3::{self, Vec3, Color, Point3};
 use crate::ray::Ray;
 use crate::hittable::HitRecord;
+use crate::texture::{Texture, SolidColor, CheckerTexture};
 use crate::utils::*;
+use std::sync::Arc;
 
 pub trait Material {
     fn scatter(&self, r_in: Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool;
+    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+        Color::zero()
+    }
 }
 
 
 // Lambertian
 
 pub struct Lambertian {
-    pub albedo: Color
+    pub albedo: Arc<dyn Texture>,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Self {
+    pub fn new(albedo: Arc<dyn Texture>) -> Self {
         Self { albedo }
     }
 }
@@ -24,7 +29,7 @@ impl Material for Lambertian {
     fn scatter(&self, r_in: Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
         let scatter_direction: Vec3 = rec.normal + vec3::random_unit_vector();
         *scattered = Ray::new(rec.p, scatter_direction);
-        *attenuation = self.albedo;
+        *attenuation = self.albedo.value(rec.u, rec.v, rec.p);
         
         return true;
     }
@@ -102,5 +107,27 @@ impl Material for Dielectric {
         *scattered = Ray::new(rec.p, refracted);
 
         return true; 
+    }
+}
+
+// Diffuse light
+
+pub struct DiffuseLight {
+    pub emit: Arc<dyn Texture>
+}
+
+impl DiffuseLight {
+    pub fn new(emit: Arc<dyn Texture>) -> Self {
+        Self { emit }
+    }
+}
+
+impl Material for DiffuseLight {
+    fn scatter(&self, r_in: Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
+        false
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+        self.emit.value(u, v, p)
     }
 }

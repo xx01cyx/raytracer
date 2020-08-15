@@ -6,11 +6,13 @@ mod hittable;
 mod sphere;
 mod camera;
 mod material;
+mod aabb;
+mod texture;
+mod aarect;
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::ProgressBar;
 use rusttype::Font;
-use std::sync::mpsc::channel;
-use std::sync::Arc;
+use std::sync::{mpsc::channel, Arc};
 use threadpool::ThreadPool;
 pub use vec3::{Vec3, Point3, Color};
 pub use ray::Ray;
@@ -18,7 +20,10 @@ pub use utils::*;
 pub use hittable::{HitRecord, Hittable, HittableList};
 pub use sphere::Sphere;
 pub use camera::Camera;
-pub use material::{Material, Lambertian, Metal, Dielectric};
+pub use material::{Material, Lambertian, Metal, Dielectric, DiffuseLight};
+pub use aabb::AABB;
+pub use texture::{Texture, SolidColor, CheckerTexture};
+pub use aarect::XyRect;
 
 
 // x-axis: horizontal (left -> right)
@@ -75,27 +80,88 @@ fn render_text(image: &mut RgbImage, msg: &str) {
     );
 }
 
-fn ray_color(r: Ray, world: &impl Hittable, depth: i32) -> Color {
-    let mut rec = HitRecord::new(Arc::new(Lambertian::new(Color::zero())));
+fn random_scene() -> HittableList {
+    let mut world = HittableList::new();
+
+    // Ground
+    world.add(Arc::new(Sphere::new(Point3::new(0.0, 1000.0, 0.0), 1000.0, 
+              Arc::new(Lambertian::new(Arc::new(CheckerTexture::new(Color::new(0.2, 0.3, 0.1), Color::new(0.9, 0.9, 0.9))))))));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat: f64 = random_f64();
+            let center = Point3::new(a as f64 + 0.9 * random_f64(), -0.2, b as f64 + 0.9 * random_f64());
+
+            if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+
+                if choose_mat < 0.8 {
+                    let albedo: Color = Color::random().elemul(Color::random());
+                    world.add(Arc::new(Sphere::new(center, 0.2, Arc::new(Lambertian::new(Arc::new(SolidColor::new(albedo)))))));
+                }
+
+                else if choose_mat < 0.95 {
+                    let albedo: Color = Color::random_range(0.5, 1.0);
+                    let fuzz: f64 = random_f64_range(0.0, 0.5);
+                    world.add(Arc::new(Sphere::new(center, 0.2, Arc::new(Metal::new(albedo, fuzz)))));
+                }
+
+                else {
+                    world.add(Arc::new(Sphere::new(center, 0.2, Arc::new(Dielectric::new(1.5)))));
+                }
+            }
+        }
+    }
+
+    world.add(Arc::new(Sphere::new(Point3::new(0.0, -1.0, 0.0), 1.0, Arc::new(Dielectric::new(1.5)))));
+    world.add(Arc::new(Sphere::new(Point3::new(-4.0, -1.0, 0.0), 1.0, Arc::new(Lambertian::new(Arc::new(SolidColor::new(Color::new(0.4, 0.2, 0.1))))))));
+    world.add(Arc::new(Sphere::new(Point3::new(4.0, -1.0, 0.0), 1.0, Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0)))));
+
+    return world;
+
+}
+
+
+fn simple_light() -> HittableList {
+    let mut objects = HittableList::new();
+
+    // Ground
+    let checker: Color = Color::random();
+    objects.add(Arc::new(Sphere::new(Point3::new(0.0, 1000.0, 0.0), 1000.0, 
+              Arc::new(Lambertian::new(Arc::new(CheckerTexture::new(checker, Color::new(0.9, 0.9, 0.9))))))));
+    
+    // Sphere
+    let albedo: Color = Color::random().elemul(Color::random());
+    objects.add(Arc::new(Sphere::new(Point3::new(2.0, -1.0, 1.0), 1.0, Arc::new(Lambertian::new(Arc::new(SolidColor::new(albedo)))))));
+    //objects.add(Arc::new(Sphere::new(Point3::new(2.0, -1.0, 1.0), 1.0, Arc::new(DiffuseLight::new(Arc::new(SolidColor::new(Color::new(4.0, 4.0, 4.0))))))));
+    
+    // Light
+    objects.add(Arc::new(XyRect::new(3.0, 5.0, -3.0, -1.0, -2.0, Arc::new(DiffuseLight::new(Arc::new(SolidColor::new(Color::new(4.0, 4.0, 4.0))))))));
+
+    return objects;
+}
+
+
+fn ray_color(r: Ray, background: Color, world: &impl Hittable, depth: i32) -> Color {
+    let mut rec = HitRecord::new(Arc::new(Lambertian::new(Arc::new(SolidColor::new(Color::zero())))));
 
     if depth <= 0 {
         return Color::zero();
     }
 
-    if world.hit(r, 0.001, INF, &mut rec) {
-        let mut scattered = Ray::new(Point3::zero(), Vec3::zero());
-        let mut attenuation =  Color::zero();
-        if rec.mat_ptr.scatter(r, &rec, &mut attenuation, &mut scattered) {
-            return attenuation.elemul(ray_color(scattered, world, depth-1));
-        }
-        return Color::zero();
-        //let target: Point3 = rec.p + vec3::random_in_hemisphere(rec.normal);
-        //return ray_color(Ray::new(rec.p, target-rec.p), world, depth-1) * 0.5;
+    if !world.hit(r, 0.001, INF, &mut rec) {
+        return background;
     }
 
-    let unit_direction: Vec3 = r.direction.unit();
-    let t: f64 = (unit_direction.y + 1.0) * 0.5;
-    return Color::ones() * (1.0-t) + Color::new(0.5, 0.7, 1.0) * t;
+    let mut scattered = Ray::new(Point3::zero(), Vec3::zero());
+    let mut attenuation =  Color::zero();
+    let emitted: Color = rec.mat_ptr.emitted(rec.u, rec.v, rec.p);
+
+    if !rec.mat_ptr.scatter(r, &rec, &mut attenuation, &mut scattered) {
+        return emitted;
+    }
+
+    return emitted + attenuation.elemul(ray_color(scattered, background, world, depth-1));
+
 }
 
 fn main() {
@@ -105,17 +171,18 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = ((image_width as f64) / aspect_ratio) as i32; 
-    let samples_per_pixel: i32 = 5;
-    let max_depth: i32 = 20;
+    let samples_per_pixel: i32 = 100;
+    let max_depth: i32 = 30;
 
 
     // Camera
 
-    let lookfrom: Point3 = Point3::new(3.0, -3.0, 2.0);
-    let lookat: Point3 = Point3::new(0.0, 0.0, -1.0);
+    let lookfrom: Point3 = Point3::new(26.0, -3.0, 6.0);
+    let lookat: Point3 = Point3::new(0.0, -2.0, 0.0);
     let vup: Vec3 = Vec3::new(0.0, 1.0, 0.0);
-    let dist_to_focus: f64 = (lookfrom - lookat).length();
-    let aperture: f64 = 2.0;
+    let dist_to_focus: f64 = 10.0;
+    let aperture: f64 = 0.0;
+    let background = Color::new(0.0, 0.0, 0.0);
 
     let cam = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus);    
     
@@ -124,11 +191,8 @@ fn main() {
 
     let mut world = HittableList::new();
 
-    world.add(Arc::new(Sphere::new(Point3::new(0.0, 100.5, -1.0), 100.0, Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0))))));
-    world.add(Arc::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5, Arc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5))))));
-    world.add(Arc::new(Sphere::new(Point3::new(-1.0, 0.0, -1.0), 0.5, Arc::new(Dielectric::new(1.5)))));
-    world.add(Arc::new(Sphere::new(Point3::new(-1.0, 0.0, -1.0), -0.45, Arc::new(Dielectric::new(1.5)))));
-    world.add(Arc::new(Sphere::new(Point3::new(1.0, 0.0, -1.0), 0.5, Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.0)))));
+    //let world = random_scene();
+    let world = simple_light();
 
 
     // Render
@@ -142,7 +206,7 @@ fn main() {
                 let u: f64 = i as f64 / (image_width - 1) as f64;
                 let v: f64 = j as f64/ (image_height - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, &world, max_depth);
+                pixel_color += ray_color(r, background, &world, max_depth);
             }  
             pixel_color = pixel_color / (samples_per_pixel as f64);
             *result.get_pixel_mut(i as u32, j as u32) = Rgb([(clamp(pixel_color.x.sqrt(), 0.0, 0.999) * 256.0) as u8, 
@@ -151,9 +215,10 @@ fn main() {
         }
     }
 
-    result.save("output/camera.png").unwrap();
+    result.save("output/light.png").unwrap();
 
-    
+
+
     /*
     // get environment variable CI, which is true for GitHub Action
     let is_ci = is_ci();
@@ -229,3 +294,4 @@ fn main() {
     */
 
 }
+
