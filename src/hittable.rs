@@ -43,7 +43,7 @@ pub trait Hittable {
 }
 
 
-
+// Hittable list
 
 pub struct HittableList {
     pub objects: Vec<Arc<dyn Hittable>>
