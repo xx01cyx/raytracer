@@ -2,6 +2,7 @@ use crate::vec3::{self, Vec3, Point3, Color};
 use crate::ray::Ray;
 use crate::utils::*;
 
+#[derive(Copy, Clone)]
 pub struct Camera {
     origin: Point3,
     lower_left_corner: Point3,

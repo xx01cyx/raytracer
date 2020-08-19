@@ -37,7 +37,7 @@ impl HitRecord {
 
 
 
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hit(&self, r: Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
     fn bounding_box(&self, output_box: &mut AABB) -> bool;
 }
@@ -45,6 +45,7 @@ pub trait Hittable {
 
 // Hittable list
 
+#[derive(Clone)]
 pub struct HittableList {
     pub objects: Vec<Arc<dyn Hittable>>
 }
