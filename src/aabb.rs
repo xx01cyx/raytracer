@@ -27,7 +27,7 @@ impl AABB {
             }
 
             let tmin = if t0 > tmin { t0 } else { tmin };
-            let tmax = if t1 < tmax { t0 } else { tmax };
+            let tmax = if t1 < tmax { t1 } else { tmax };
             if tmax <= tmin {
                 return false;
             }
