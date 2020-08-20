@@ -49,15 +49,16 @@ impl Vec3 {
     }
 
     pub fn unit(&self) -> Self {
+        if self.x == 0.0 && self.y == 0.0 && self.z == 0.0 {
+            panic!("The unit vector of a null vector doesn't exist!");
+        }
+
         let len = self.length();
 
-        match len {
-            0.0 => panic!("The unit vector of a null vector doesn't exist!"),
-            _ => Self {
-                x: self.x / len,
-                y: self.y / len,
-                z: self.z / len,
-            },
+        Self {
+            x: self.x / len,
+            y: self.y / len,
+            z: self.z / len,
         }
     }
 
@@ -226,6 +227,7 @@ pub fn random_unit_vector() -> Vec3 {
     Vec3::new(r * a.cos(), r * a.sin(), z)
 }
 
+/*
 pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
     let in_unit_sphere: Vec3 = random_in_unit_sphere();
     if in_unit_sphere * normal > 0.0 {
@@ -234,6 +236,7 @@ pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
         -in_unit_sphere
     }
 }
+*/
 
 pub fn random_in_unit_disk() -> Vec3 {
     loop {
@@ -261,7 +264,6 @@ pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
     r_out_prep + r_out_parallel
 }
 
-/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -398,4 +400,4 @@ mod tests {
     fn test_unit_panic() {
         Vec3::new(0.0, 0.0, 0.0).unit();
     }
-}*/
+}

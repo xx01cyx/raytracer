@@ -16,8 +16,8 @@ impl BvhNode {
     fn new_(objects: &mut [Arc<dyn Hittable>], start: usize, end: usize) -> Self {
         let axis: i32 = random_i32_range(0, 2);
         let object_span: usize = end - start;
-        let mut left: Arc<dyn Hittable> = Arc::new(HittableList::new());
-        let mut right: Arc<dyn Hittable> = Arc::new(HittableList::new());
+        let left: Arc<dyn Hittable>;
+        let right: Arc<dyn Hittable>;
 
         if object_span == 1 {
             left = objects[start].clone();

@@ -1,5 +1,7 @@
+use std::f64::consts::PI as OtherPI;
+
 pub const INF: f64 = 0xfffffff as f64;
-pub const PI: f64 = 3.1415926535897932385;
+pub const PI: f64 = OtherPI;
 
 pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * PI / 180.0

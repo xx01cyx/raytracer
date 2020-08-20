@@ -72,33 +72,6 @@ fn ray_color(r: Ray, background: Color, world: &impl Hittable, depth: u32) -> Co
     emitted + attenuation.elemul(ray_color(scattered, background, world, depth - 1))
 }
 
-fn get_color(
-    x: u32,
-    y: u32,
-    image_width: u32,
-    image_height: u32,
-    samples_per_pixel: u32,
-    cam: &Camera,
-    my_world: &HittableList,
-    background: Color,
-    max_depth: u32,
-) -> [u8; 3] {
-    let mut pixel_color: Color = Color::zero();
-    for _ in 0..samples_per_pixel {
-        let u: f64 = x as f64 / (image_width - 1) as f64;
-        let v: f64 = y as f64 / (image_height - 1) as f64;
-        let rr = (*cam).get_ray(u, v);
-        pixel_color += ray_color(rr, background, my_world, max_depth);
-    }
-    pixel_color = pixel_color / (samples_per_pixel as f64);
-
-    [
-        (clamp(pixel_color.x.sqrt(), 0.0, 0.999) * 256.0) as u8,
-        (clamp(pixel_color.y.sqrt(), 0.0, 0.999) * 256.0) as u8,
-        (clamp(pixel_color.z.sqrt(), 0.0, 0.999) * 256.0) as u8,
-    ]
-}
-
 fn main() {
     // get environment variable CI, which is true for GitHub Action
     let is_ci = is_ci();
@@ -165,7 +138,7 @@ fn main() {
 
         4 => {
             world = maiden_room();
-            samples_per_pixel = 400;
+            samples_per_pixel = 500;
             background = Color::zero();
             lookfrom = Point3::new(26.0, -26.0, 6.0);
             lookat = Point3::new(0.0, -2.3, 0.0);
@@ -211,18 +184,21 @@ fn main() {
                 for (img_y, y) in (row_begin..row_end).enumerate() {
                     let y = y as u32;
                     let pixel = img.get_pixel_mut(x, img_y as u32);
-                    let color = get_color(
-                        x,
-                        y,
-                        width,
-                        height,
-                        samples_per_pixel,
-                        &cam,
-                        &world_,
-                        background,
-                        max_depth,
-                    );
-                    *pixel = Rgb(color);
+                    let mut pixel_color: Color = Color::zero();
+
+                    for _ in 0..samples_per_pixel {
+                        let u: f64 = x as f64 / (width - 1) as f64;
+                        let v: f64 = y as f64 / (height - 1) as f64;
+                        let rr = cam.get_ray(u, v);
+                        pixel_color += ray_color(rr, background, &world_, max_depth);
+                    }
+                    pixel_color = pixel_color / (samples_per_pixel as f64);
+
+                    *pixel = Rgb([
+                        (clamp(pixel_color.x.sqrt(), 0.0, 0.999) * 256.0) as u8,
+                        (clamp(pixel_color.y.sqrt(), 0.0, 0.999) * 256.0) as u8,
+                        (clamp(pixel_color.z.sqrt(), 0.0, 0.999) * 256.0) as u8,
+                    ]);
                 }
             }
             // send row range and rendered image to main thread

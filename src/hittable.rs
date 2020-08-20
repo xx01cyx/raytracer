@@ -64,6 +64,12 @@ impl HittableList {
     }
 }
 
+impl Default for HittableList {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Hittable for HittableList {
     fn hit(&self, r: Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
         let mut temp_rec = HitRecord::new(Arc::new(Lambertian::new(Arc::new(SolidColor::new(
@@ -84,7 +90,7 @@ impl Hittable for HittableList {
     }
 
     fn bounding_box(&self, output_box: &mut AABB) -> bool {
-        if self.objects.len() == 0 {
+        if self.objects.is_empty() {
             return false;
         }
 
