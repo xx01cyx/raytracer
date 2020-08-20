@@ -1,5 +1,5 @@
-use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub, SubAssign};
 use crate::utils::*;
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
@@ -36,7 +36,7 @@ impl Vec3 {
         Self {
             x: self.x * other.x,
             y: self.y * other.y,
-            z: self.z * other.z
+            z: self.z * other.z,
         }
     }
 
@@ -75,7 +75,11 @@ impl Vec3 {
     }
 
     pub fn random_range(min: f64, max: f64) -> Vec3 {
-        Vec3::new(random_f64_range(min, max), random_f64_range(min, max), random_f64_range(min, max))
+        Vec3::new(
+            random_f64_range(min, max),
+            random_f64_range(min, max),
+            random_f64_range(min, max),
+        )
     }
 }
 
@@ -126,9 +130,9 @@ impl AddAssign<f64> for Vec3 {
 impl Mul for Vec3 {
     type Output = f64;
 
-     fn mul(self, other: Self) -> f64 {
-             self.x * other.x + self.y * other.y + self.z * other.z
-     }
+    fn mul(self, other: Self) -> f64 {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
 }
 
 impl MulAssign<f64> for Vec3 {
@@ -199,7 +203,7 @@ impl SubAssign<f64> for Vec3 {
 
 impl Div<f64> for Vec3 {
     type Output = Self;
-    
+
     fn div(self, other: f64) -> Self {
         self * (1.0 / other)
     }
@@ -216,21 +220,28 @@ pub fn random_in_unit_sphere() -> Vec3 {
 }
 
 pub fn random_unit_vector() -> Vec3 {
-    let a = random_f64_range(0.0, 2.0*PI);
+    let a = random_f64_range(0.0, 2.0 * PI);
     let z = random_f64_range(-1.0, 1.0);
     let r = (1.0 - z * z).sqrt();
-    Vec3::new(r*a.cos(), r*a.sin(), z)
+    Vec3::new(r * a.cos(), r * a.sin(), z)
 }
 
 pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
     let in_unit_sphere: Vec3 = random_in_unit_sphere();
-    if in_unit_sphere * normal > 0.0 { in_unit_sphere }
-    else { -in_unit_sphere }
+    if in_unit_sphere * normal > 0.0 {
+        in_unit_sphere
+    } else {
+        -in_unit_sphere
+    }
 }
 
 pub fn random_in_unit_disk() -> Vec3 {
     loop {
-        let p = Vec3::new(random_f64_range(-1.0, 1.0), random_f64_range(-1.0, 1.0), 0.0);
+        let p = Vec3::new(
+            random_f64_range(-1.0, 1.0),
+            random_f64_range(-1.0, 1.0),
+            0.0,
+        );
         if p.squared_length() >= 1.0 {
             continue;
         }
@@ -364,7 +375,7 @@ mod tests {
     fn test_squared_length() {
         assert_eq!(Vec3::new(1.0, 2.0, 3.0).squared_length(), 14.0 as f64);
     }
-    
+
     #[test]
     fn test_length() {
         assert_eq!(

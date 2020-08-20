@@ -1,15 +1,15 @@
-use crate::vec3::{ Vec3, Point3, Color };
-use crate::ray::Ray;
-use crate::hittable::{ HitRecord, Hittable };
-use crate::material::Material;
 use crate::aabb::AABB;
+use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
+use crate::ray::Ray;
 use crate::utils::*;
+use crate::vec3::{Point3, Vec3};
 use std::sync::Arc;
 
 pub struct Sphere {
     pub center: Point3,
     pub radius: f64,
-    pub mat_ptr: Arc<dyn Material>
+    pub mat_ptr: Arc<dyn Material>,
 }
 
 impl Sphere {
@@ -17,7 +17,7 @@ impl Sphere {
         Self {
             center: cen,
             radius: r,
-            mat_ptr: m
+            mat_ptr: m,
         }
     }
 }
@@ -56,14 +56,16 @@ impl Hittable for Sphere {
             }
         }
 
-        return false;
+        false
     }
 
     fn bounding_box(&self, output_box: &mut AABB) -> bool {
-        *output_box = AABB::new(self.center - Vec3::new(self.radius, self.radius, self.radius), 
-                               self.center + Vec3::new(self.radius, self.radius, self.radius));
-        
-        return true;
+        *output_box = AABB::new(
+            self.center - Vec3::new(self.radius, self.radius, self.radius),
+            self.center + Vec3::new(self.radius, self.radius, self.radius),
+        );
+
+        true
     }
 }
 

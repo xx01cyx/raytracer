@@ -1,10 +1,9 @@
-use crate::vec3::{Vec3, Point3, Color};
-use crate::ray::Ray;
+use crate::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::material::Material;
-use crate::aabb::AABB;
+use crate::ray::Ray;
+use crate::vec3::{Point3, Vec3};
 use std::sync::Arc;
-
 
 // X-Y Rectangle
 
@@ -19,7 +18,14 @@ pub struct XyRect {
 
 impl XyRect {
     pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k: f64, mp: Arc<dyn Material>) -> Self {
-        Self { mp, x0, x1, y0, y1, k }
+        Self {
+            mp,
+            x0,
+            x1,
+            y0,
+            y1,
+            k,
+        }
     }
 }
 
@@ -44,16 +50,18 @@ impl Hittable for XyRect {
         rec.mat_ptr = self.mp.clone();
         rec.p = r.at(t);
 
-        return true;
+        true
     }
 
     fn bounding_box(&self, output_box: &mut AABB) -> bool {
-        *output_box = AABB::new(Point3::new(self.x0, self.y0, self.k-0.0001), Point3::new(self.x1, self.y1, self.k+0.0001));
-        
-        return true;
+        *output_box = AABB::new(
+            Point3::new(self.x0, self.y0, self.k - 0.0001),
+            Point3::new(self.x1, self.y1, self.k + 0.0001),
+        );
+
+        true
     }
 }
-
 
 // X-Z Rectangle
 
@@ -68,7 +76,14 @@ pub struct XzRect {
 
 impl XzRect {
     pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k: f64, mp: Arc<dyn Material>) -> Self {
-        Self { mp, x0, x1, z0, z1, k }
+        Self {
+            mp,
+            x0,
+            x1,
+            z0,
+            z1,
+            k,
+        }
     }
 }
 
@@ -93,16 +108,18 @@ impl Hittable for XzRect {
         rec.mat_ptr = self.mp.clone();
         rec.p = r.at(t);
 
-        return true;
+        true
     }
 
     fn bounding_box(&self, output_box: &mut AABB) -> bool {
-        *output_box = AABB::new(Point3::new(self.x0, self.k-0.0001, self.z0), Point3::new(self.x1, self.k+0.0001, self.z1));
-        
-        return true;
+        *output_box = AABB::new(
+            Point3::new(self.x0, self.k - 0.0001, self.z0),
+            Point3::new(self.x1, self.k + 0.0001, self.z1),
+        );
+
+        true
     }
 }
-
 
 // Y-Z Rectangle
 
@@ -117,7 +134,14 @@ pub struct YzRect {
 
 impl YzRect {
     pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k: f64, mp: Arc<dyn Material>) -> Self {
-        Self { mp, y0, y1, z0, z1, k }
+        Self {
+            mp,
+            y0,
+            y1,
+            z0,
+            z1,
+            k,
+        }
     }
 }
 
@@ -142,12 +166,15 @@ impl Hittable for YzRect {
         rec.mat_ptr = self.mp.clone();
         rec.p = r.at(t);
 
-        return true;
+        true
     }
 
     fn bounding_box(&self, output_box: &mut AABB) -> bool {
-        *output_box = AABB::new(Point3::new(self.k-0.0001, self.y0, self.z0), Point3::new(self.k+0.0001, self.y1, self.z1));
-        
-        return true;
+        *output_box = AABB::new(
+            Point3::new(self.k - 0.0001, self.y0, self.z0),
+            Point3::new(self.k + 0.0001, self.y1, self.z1),
+        );
+
+        true
     }
 }

@@ -1,17 +1,22 @@
-use crate::vec3::{self, Vec3, Color, Point3};
-use crate::ray::Ray;
 use crate::hittable::HitRecord;
-use crate::texture::{Texture, SolidColor, CheckerTexture};
+use crate::ray::Ray;
+use crate::texture::Texture;
 use crate::utils::*;
+use crate::vec3::{self, Color, Point3, Vec3};
 use std::sync::Arc;
 
 pub trait Material: Send + Sync {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool;
-    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+    fn scatter(
+        &self,
+        r_in: Ray,
+        rec: &HitRecord,
+        attenuation: &mut Color,
+        scattered: &mut Ray,
+    ) -> bool;
+    fn emitted(&self, _u: f64, _v: f64, _p: Point3) -> Color {
         Color::zero()
     }
 }
-
 
 // Lambertian
 
@@ -26,15 +31,20 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
+    fn scatter(
+        &self,
+        _r_in: Ray,
+        rec: &HitRecord,
+        attenuation: &mut Color,
+        scattered: &mut Ray,
+    ) -> bool {
         let scatter_direction: Vec3 = rec.normal + vec3::random_unit_vector();
         *scattered = Ray::new(rec.p, scatter_direction);
         *attenuation = self.albedo.value(rec.u, rec.v, rec.p);
-        
-        return true;
+
+        true
     }
 }
-
 
 // Metal
 
@@ -51,27 +61,30 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
+    fn scatter(
+        &self,
+        r_in: Ray,
+        rec: &HitRecord,
+        attenuation: &mut Color,
+        scattered: &mut Ray,
+    ) -> bool {
         let reflected: Vec3 = vec3::reflect(r_in.direction.unit(), rec.normal);
         *scattered = Ray::new(rec.p, reflected + vec3::random_in_unit_sphere() * self.fuzz);
         *attenuation = self.albedo;
-        
-        return scattered.direction * rec.normal > 0.0;
+
+        scattered.direction * rec.normal > 0.0
     }
 }
-
 
 // Dielectric
 
 pub struct Dielectric {
-    pub ref_idx: f64
+    pub ref_idx: f64,
 }
 
 impl Dielectric {
     pub fn new(ri: f64) -> Self {
-        Self {
-            ref_idx: ri
-        }
+        Self { ref_idx: ri }
     }
 
     fn schlick(cosine: f64, ref_idx: f64) -> f64 {
@@ -83,11 +96,21 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
+    fn scatter(
+        &self,
+        r_in: Ray,
+        rec: &HitRecord,
+        attenuation: &mut Color,
+        scattered: &mut Ray,
+    ) -> bool {
         *attenuation = Color::ones();
-        let etai_over_etat: f64 = if rec.front_face { 1.0 / self.ref_idx } else { self.ref_idx };
+        let etai_over_etat: f64 = if rec.front_face {
+            1.0 / self.ref_idx
+        } else {
+            self.ref_idx
+        };
         let unit_direction: Vec3 = r_in.direction.unit();
-        let cos_theta: f64 = min(1.0,  -unit_direction * rec.normal);
+        let cos_theta: f64 = fmin(1.0, -unit_direction * rec.normal);
         let sin_theta: f64 = (1.0 - cos_theta * cos_theta).sqrt();
 
         if etai_over_etat * sin_theta > 1.0 {
@@ -106,14 +129,14 @@ impl Material for Dielectric {
         let refracted: Vec3 = vec3::refract(unit_direction, rec.normal, etai_over_etat);
         *scattered = Ray::new(rec.p, refracted);
 
-        return true; 
+        true
     }
 }
 
 // Diffuse light
 
 pub struct DiffuseLight {
-    pub emit: Arc<dyn Texture>
+    pub emit: Arc<dyn Texture>,
 }
 
 impl DiffuseLight {
@@ -123,7 +146,13 @@ impl DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
+    fn scatter(
+        &self,
+        _r_in: Ray,
+        _rec: &HitRecord,
+        _attenuation: &mut Color,
+        _scattered: &mut Ray,
+    ) -> bool {
         false
     }
 

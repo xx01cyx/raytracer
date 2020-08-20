@@ -1,4 +1,4 @@
-use crate::vec3::{Vec3, Point3, Color};
+use crate::vec3::{Point3, Vec3};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Ray {
@@ -15,7 +15,6 @@ impl Ray {
         self.origin + self.direction * t
     }
 }
-
 
 #[cfg(test)]
 mod test {
