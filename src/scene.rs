@@ -184,10 +184,12 @@ pub fn maiden_room() -> HittableList {
     let mut room = HittableList::new();
 
     // Ground
-    
+
     let misty_rose = Color::new(255.0, 228.0, 225.0) / 255.0;
     let light_gray = Color::new(211.0, 211.0, 211.0) / 255.0;
-    let ground_material = Arc::new(Lambertian::new(Arc::new(CheckerTexture::new(misty_rose, light_gray))));
+    let ground_material = Arc::new(Lambertian::new(Arc::new(CheckerTexture::new(
+        misty_rose, light_gray,
+    ))));
     room.add(Arc::new(Sphere::new(
         Point3::new(0.0, 1500.0, 0.0),
         1500.0,
