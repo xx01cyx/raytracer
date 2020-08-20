@@ -87,8 +87,8 @@ fn get_color(
     for _ in 0..samples_per_pixel {
         let u: f64 = x as f64 / (image_width - 1) as f64;
         let v: f64 = y as f64 / (image_height - 1) as f64;
-        let r = (*cam).get_ray(u, v);
-        pixel_color += ray_color(r, background, my_world, max_depth);
+        let rr = (*cam).get_ray(u, v);
+        pixel_color += ray_color(rr, background, my_world, max_depth);
     }
     pixel_color = pixel_color / (samples_per_pixel as f64);
 
