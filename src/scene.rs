@@ -213,13 +213,13 @@ pub fn maiden_room() -> HittableList {
             }
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                if choose_mat < 0.05 {
+                if choose_mat < 0.1 {
                     room.add(Arc::new(Sphere::new(
                         center,
                         radius,
                         Arc::new(Dielectric::new(0.5)),
                     )));
-                } else if choose_mat < 0.95 {
+                } else if choose_mat < 0.75 {
                     let albedo: Color = Color::ones() - Color::random().elemul(Color::random());
                     room.add(Arc::new(Sphere::new(
                         center,
@@ -239,28 +239,12 @@ pub fn maiden_room() -> HittableList {
         }
     }
 
-    // Light
-
-    room.add(Arc::new(Sphere::new(
-        Point3::new(-4.0, -13.0, 8.0),
-        5.0,
-        Arc::new(DiffuseLight::new(Arc::new(SolidColor::new(Color::new(
-            7.0, 7.0, 7.0,
-        ))))),
-    )));
-    room.add(Arc::new(Sphere::new(
-        Point3::new(4.0, -18.0, -8.0),
-        5.0,
-        Arc::new(DiffuseLight::new(Arc::new(SolidColor::new(Color::new(
-            7.0, 7.0, 7.0,
-        ))))),
-    )));
 
     // Tower
 
-    let msb = Color::new(123.0, 104.0, 238.0) / 255.0; // MediumSlateBlue
-    let lc = Color::new(240.0, 128.0, 128.0) / 255.0; // LightCoral
-    let lavender = Color::new(230.0, 230.0, 250.0) / 255.0; // Lavender
+    let msb = Color::new(123.0, 104.0, 238.0) / 255.0;       // MediumSlateBlue
+    let lc = Color::new(240.0, 128.0, 128.0) / 255.0;        // LightCoral
+    let lavender = Color::new(230.0, 230.0, 250.0) / 255.0;  // Lavender
 
     let box1 = Box::new(
         Point3::new(-1.0, -2.0, -1.0),
