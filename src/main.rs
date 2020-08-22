@@ -139,7 +139,7 @@ fn main() {
         4 => {
             world = maiden_room();
             samples_per_pixel = 500;
-            background = Color::new(255.0, 240.0, 245.0) / 255.0;    //LavenderBlush
+            background = Color::new(255.0, 240.0, 245.0) / 255.0; //LavenderBlush
             lookfrom = Point3::new(26.0, -26.0, 6.0);
             lookat = Point3::new(0.0, -2.3, 0.0);
             vfov = 15.0;

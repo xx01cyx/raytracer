@@ -239,12 +239,11 @@ pub fn maiden_room() -> HittableList {
         }
     }
 
-
     // Tower
 
-    let msb = Color::new(123.0, 104.0, 238.0) / 255.0;       // MediumSlateBlue
-    let lc = Color::new(240.0, 128.0, 128.0) / 255.0;        // LightCoral
-    let lavender = Color::new(230.0, 230.0, 250.0) / 255.0;  // Lavender
+    let msb = Color::new(123.0, 104.0, 238.0) / 255.0; // MediumSlateBlue
+    let lc = Color::new(240.0, 128.0, 128.0) / 255.0; // LightCoral
+    let lavender = Color::new(230.0, 230.0, 250.0) / 255.0; // Lavender
 
     let box1 = Box::new(
         Point3::new(-1.0, -2.0, -1.0),
